@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EIS Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+
+    .card-lift {
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .card-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    /* Modal animation */
+    #item-modal {
+      transition: opacity 0.2s ease;
+    }
+    #item-modal.hidden { pointer-events: none; opacity: 0; }
+    #modal-panel {
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    #item-modal.hidden #modal-panel {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased">
+
+  <!-- ════════════════════  HEADER  ════════════════════ -->
+  <header class="bg-gradient-to-r from-brand-800 to-brand-600 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight tracking-wide">EIS Hub</h1>
+          <p class="text-blue-200 text-xs">Enterprise Information Services</p>
+        </div>
+      </div>
+      <div class="text-right text-sm text-blue-100">
+        <p id="greeting" class="font-medium"></p>
+        <p id="today-date" class="text-xs text-blue-200"></p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════  TICKER  ════════════════════ -->
+  <div class="bg-brand-700 text-white">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-3">
+      <span class="text-xs font-semibold uppercase tracking-widest text-blue-200 shrink-0">Latest</span>
+      <p class="text-sm text-blue-100 truncate">
+        Welcome to EIS Hub — your portal for NetOps, SecOps and DevOps resources.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════════════  MAIN  ════════════════════ -->
+  <main class="max-w-6xl mx-auto px-6 py-8 space-y-10" id="groups-root">
+    <!-- Sections injected by JS -->
+  </main>
+
+  <!-- ════════════════════  MODAL  ════════════════════ -->
+  <div id="item-modal"
+       class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+       role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <div id="modal-panel"
+         class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+
+      <!-- Modal header -->
+      <div id="modal-header" class="flex items-start justify-between p-6 pb-4 border-b border-gray-100">
+        <div class="flex-1 pr-4">
+          <span id="modal-group-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full inline-block mb-2"></span>
+          <h2 id="modal-title" class="text-xl font-bold text-gray-900 leading-snug"></h2>
+        </div>
+        <button id="modal-close"
+                class="shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                aria-label="Close">
+          <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Description -->
+      <div class="px-6 py-5">
+        <p id="modal-description" class="text-gray-700 text-sm leading-relaxed"></p>
+      </div>
+
+      <!-- Actions -->
+      <div class="px-6 pb-6 flex justify-end gap-3">
+        <button id="modal-close-btn"
+                class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+          Close
+        </button>
+        <button id="modal-action-btn"
+                class="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors">
+          Learn More
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════  FOOTER  ════════════════════ -->
+  <footer class="border-t border-gray-200 mt-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between text-xs text-gray-400 flex-wrap gap-2">
+      <span>EIS Hub &mdash; Enterprise Information Services</span>
+      <span id="footer-year"></span>
+    </div>
+  </footer>
+
+
+  <!-- ════════════════════  DATA & LOGIC  ════════════════════ -->
+  <script>
+    /* ─── THEME MAP ─────────────────────────────────────────────── */
+    const THEME_MAP = {
+      "NetOps": {
+        accentBar:  "bg-blue-500",
+        badgeBg:    "bg-blue-100 text-blue-700",
+        btnBg:      "bg-blue-600 hover:bg-blue-700",
+        cardBorder: "border-blue-200 hover:border-blue-400",
+        cardIcon:   `<svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round"
+                         d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                     </svg>`,
+      },
+      "SecOps": {
+        accentBar:  "bg-red-500",
+        badgeBg:    "bg-red-100 text-red-700",
+        btnBg:      "bg-red-600 hover:bg-red-700",
+        cardBorder: "border-red-200 hover:border-red-400",
+        cardIcon:   `<svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round"
+                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                     </svg>`,
+      },
+      "DevOps": {
+        accentBar:  "bg-green-500",
+        badgeBg:    "bg-green-100 text-green-700",
+        btnBg:      "bg-green-600 hover:bg-green-700",
+        cardBorder: "border-green-200 hover:border-green-400",
+        cardIcon:   `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round"
+                         d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                     </svg>`,
+      },
+      "AIOps": {
+        accentBar:  "bg-purple-500",
+        badgeBg:    "bg-purple-100 text-purple-700",
+        btnBg:      "bg-purple-600 hover:bg-purple-700",
+        cardBorder: "border-purple-200 hover:border-purple-400",
+        cardIcon:   `<svg class="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round"
+                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                     </svg>`,
+      },
+      "_default": {
+        accentBar:  "bg-gray-400",
+        badgeBg:    "bg-gray-100 text-gray-700",
+        btnBg:      "bg-gray-600 hover:bg-gray-700",
+        cardBorder: "border-gray-200 hover:border-gray-400",
+        cardIcon:   `<svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round"
+                         d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                     </svg>`,
+      },
+    };
+
+    /* ─── INLINE DATA ────────────────────────────────────────────
+       To update content: edit the items below, then re-upload
+       this single file to SharePoint. No other files needed.
+       ─────────────────────────────────────────────────────────── */
+    const INLINE_DATA = [
+      {
+        name: "NetOps",
+        items: [
+          {
+            title: "Wireless Deployment",
+            subtitle: "Zero-touch AP provisioning and RF optimisation",
+            description: "Cisco Catalyst Center simplifies wireless deployment through Day-0 zero-touch provisioning of access points via Network Plug and Play (PnP). The wireless design workflow lets you define RF profiles, SSID policies, and AP groups centrally, then push configurations to hundreds of APs simultaneously. Built-in RF model simulation predicts coverage and interference before physical deployment, reducing on-site remediation and accelerating rollout across campus and branch sites."
+          },
+          {
+            title: "Assurance, Monitoring and Troubleshooting",
+            subtitle: "AI-driven network health scores and root-cause analysis",
+            description: "Catalyst Center Assurance continuously collects telemetry from wired and wireless devices — including client experience, application performance, and device health — and aggregates it into a 360-degree health score. When issues arise, guided troubleshooting workflows compare current behaviour against learned baselines, isolate root causes across layers, and surface recommended corrective actions. The result is a dramatic reduction in mean-time-to-resolution, with engineers guided step-by-step rather than manually correlating logs."
+          },
+          {
+            title: "Wired Plug-and-Play & LAN Automation",
+            subtitle: "Automated zero-touch switch and router provisioning",
+            description: "Network Plug and Play (PnP) enables zero-touch provisioning for new Cisco switches, routers, and APs. When a device boots and contacts the PnP server, Catalyst Center automatically pushes the correct software image and day-0 configuration. LAN Automation extends this further by automating IP addressing, IS-IS underlay routing, and physical connectivity discovery — allowing network teams to deploy hundreds of access-layer devices without any manual CLI intervention."
+          },
+          {
+            title: "SDA Fabric Provisioning",
+            subtitle: "Automated SD-Access overlay and underlay deployment",
+            description: "Catalyst Center orchestrates the full lifecycle of a Software-Defined Access (SD-Access) fabric — creating virtual networks (VNs), scalable group tags (SGTs), and transit configurations from a single intent-based workflow. Fabric roles (control plane, border, and edge nodes) are assigned and provisioned automatically. Policy is embedded in the network at provisioning time, eliminating the need for manual VLAN and ACL management across the access layer and enabling consistent macro-segmentation at scale."
+          },
+          {
+            title: "SWIM, RMA and Catalyst Center Upgrades",
+            subtitle: "Lifecycle image management and hardware replacement workflows",
+            description: "Software Image Management (SWIM) in Catalyst Center provides a centralised image repository, compliance checking against the Golden Image policy, and staged distribution and activation workflows for all managed network devices. RMA workflows automate failed-hardware replacement by transferring the existing configuration to a new device via PnP. Catalyst Center itself is upgraded through the System Update workflow, which handles pre-checks, bundle download, and rolling node upgrades with minimal disruption."
+          },
+          {
+            title: "Templates, Reporting and Event Notifications",
+            subtitle: "Config templates, custom reports, and alert integrations",
+            description: "The Template Editor in Catalyst Center lets network engineers author Jinja2 and Velocity-based configuration templates with variable binding, conditional logic, and day-N automation support. The Reports module generates scheduled or on-demand reports covering network health, client counts, and compliance status. Event Notifications connect Catalyst Center to external systems — ServiceNow, Webex, and REST webhooks — enabling automated ticket creation, chat alerts, and workflow triggers whenever defined network events occur."
+          },
+        ]
+      },
+      {
+        name: "SecOps",
+        items: [
+          {
+            title: "Cisco ISE Integration",
+            subtitle: "Unified policy and identity management with ISE",
+            description: "Catalyst Center integrates natively with Cisco Identity Services Engine (ISE) to synchronise scalable group tags (SGTs) and group-based access policies across the SD-Access fabric. Policy definitions created in Catalyst Center are pushed to ISE as TrustSec policies, enabling consistent enforcement at the network edge. The integration surfaces ISE authentication and profiling data inside Assurance workflows, giving teams end-to-end client visibility from authentication event through to application experience."
+          },
+          {
+            title: "Identity-Based Segmentation",
+            subtitle: "Micro-segmentation using scalable group tags",
+            description: "SD-Access enforces segmentation based on user and device identity rather than IP topology. Scalable Group Tags (SGTs) are assigned to endpoints at authentication time and carried across the fabric overlay. Catalyst Center's policy matrix lets administrators define which groups can communicate, and the platform translates these intent-based policies into fabric-wide enforcement — isolating IoT devices, guests, and corporate assets on a shared physical infrastructure without the VLAN proliferation of traditional network designs."
+          },
+          {
+            title: "802.1X Device Authentication",
+            subtitle: "Standards-based port-level network access control",
+            description: "Catalyst Center configures and manages IEEE 802.1X authentication for both wired and wireless endpoints via integration with Cisco ISE. Authentication policies, RADIUS server profiles, and CoA (Change of Authorisation) settings are pushed from a centralised workflow to all relevant switches and wireless LAN controllers. Devices that fail authentication are automatically placed into a quarantine VLAN or denied access entirely, enforcing a consistent and auditable network access control posture across the enterprise."
+          },
+          {
+            title: "Secure Device Onboarding",
+            subtitle: "Verified policy-compliant network admission for new devices",
+            description: "Catalyst Center's Network Plug and Play combined with ISE profiling ensures that only known, compliant devices are admitted to the network. The onboarding workflow validates device identity (by certificate or MAC address), assigns the correct virtual network and SGT, and delivers a baseline configuration before the device is permitted to pass traffic. This closed-loop process eliminates the risk of rogue device access and enforces a consistent security posture from the moment a new device is physically connected."
+          },
+        ]
+      },
+      {
+        name: "DevOps",
+        items: [
+          {
+            title: "Catalyst Center API & Automation",
+            subtitle: "Northbound REST APIs for network programmability",
+            description: "Catalyst Center exposes a comprehensive northbound REST API covering intent, integration, event notification, and ITSM connectors. Engineers can use the APIs to automate provisioning workflows, query network health data, trigger SWIM upgrades, and subscribe to event streams programmatically. Cisco DevNet publishes Postman collections and a Python SDK, enabling rapid integration with CI/CD pipelines, ITSM platforms such as ServiceNow, and custom dashboards — all without requiring access to the Catalyst Center UI."
+          },
+          {
+            title: "Infrastructure as Code",
+            subtitle: "Version-controlled network configuration with IaC tooling",
+            description: "Catalyst Center's API surface pairs with IaC tooling — including the Cisco Catalyst Center Terraform provider and the cisco.dnac Ansible collection — to declare network intent in code. Teams store site hierarchies, IP pools, device credentials, and template content in Git repositories and apply changes through automated pipelines. This approach brings change traceability, peer review, and rollback capabilities to network operations, aligning network change management with modern software engineering practices."
+          },
+          {
+            title: "Ansible Network Automation",
+            subtitle: "Playbook-driven network lifecycle management via cisco.dnac",
+            description: "The Cisco-published cisco.dnac Ansible collection (available on Ansible Galaxy) provides hundreds of idempotent modules that map directly to Catalyst Center API resources. Operations teams write playbooks to manage site hierarchies, provision devices, push configuration templates, trigger SWIM workflows, and retrieve Assurance data. Integrating these playbooks into Ansible Automation Platform (AAP) or AWX allows fully automated network lifecycle operations triggered by inventory changes, scheduled jobs, or ITSM events."
+          },
+          {
+            title: "Terraform Infrastructure Provisioning",
+            subtitle: "Declarative network provisioning with the Catalyst Center Terraform provider",
+            description: "The Cisco Catalyst Center Terraform provider allows infrastructure teams to declare site structures, network profiles, IP address pools, and device assignments as HCL resources. Running terraform plan surfaces a diff of intended versus current network state, while terraform apply pushes changes via the northbound API. State files stored in remote backends enable collaborative workflows, and integration with Terraform Cloud or Atlantis provides policy-gated approval gates before network changes are applied to production."
+          },
+        ]
+      },
+      {
+        name: "AIOps",
+        items: [
+          {
+            title: "AI-Powered Radio Resource Management",
+            subtitle: "Autonomous RF optimisation using machine learning",
+            description: "Catalyst Center AI-enhanced Radio Resource Management (AI-RRM) applies machine learning to continuously optimise channel assignment, transmit power, and client steering across the wireless estate. Unlike traditional RRM algorithms that react to observed interference, AI-RRM builds predictive models from historical RF health data to proactively adjust the radio environment. This reduces co-channel interference, improves roaming behaviour, and sustains higher client throughput without the need for manual RF tuning by wireless engineers."
+          },
+          {
+            title: "AI Endpoint Analytics",
+            subtitle: "ML-powered device profiling and behavioural anomaly detection",
+            description: "AI Endpoint Analytics in Catalyst Center uses machine learning to profile every device connecting to the network — inferring device type, operating system, and manufacturer from DHCP, HTTP, and mDNS telemetry without requiring 802.1X credentials. The platform groups endpoints into profiling labels, flags anomalous behaviour (such as an IP camera suddenly performing a network scan), and integrates with Cisco ISE to dynamically enforce the correct access policy based on the real-time inferred device identity."
+          },
+          {
+            title: "Site Planning with Peer Comparison & Heatmaps",
+            subtitle: "AI-guided wireless design and cross-site benchmarking",
+            description: "Catalyst Center's planning tools include an interactive RF heatmap editor for designing wireless coverage before physical deployment — engineers import floor plans, place simulated APs, and validate coverage against signal-strength thresholds. The Peer Comparison feature benchmarks a site's KPIs (client count, throughput, RSSI distribution) against anonymised data from similar Cisco deployments worldwide, surfacing performance gaps and configuration recommendations to align each site with industry best practice."
+          },
+          {
+            title: "Machine Reasoning Engine",
+            subtitle: "AI-driven automated diagnosis of network and client issues",
+            description: "The Machine Reasoning Engine (MRE) in Catalyst Center applies a knowledge graph of Cisco-authored diagnostic rules to automate troubleshooting of client connectivity failures. When a client issue is detected, MRE traverses the full client path — checking DHCP leases, AAA authentication events, RF metrics, and switch port status — and produces a structured root-cause finding with a recommended remediation step. This reduces average troubleshooting time from tens of minutes to seconds, empowering first-level support to resolve issues that previously required specialist intervention."
+          },
+        ]
+      },
+    ];
+
+    /* ─── RENDER ──────────────────────────────────────────────── */
+    const root = document.getElementById('groups-root');
+    let GROUPS = [];
+
+    function renderGroups(groups) {
+      GROUPS = groups.map(g => ({
+        ...g,
+        ...(THEME_MAP[g.name] || THEME_MAP['_default']),
+      }));
+
+      root.innerHTML = '';
+
+      GROUPS.forEach(group => {
+        const section = document.createElement('section');
+        section.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-1 h-6 ${group.accentBar} rounded-full block"></span>
+              <h2 class="text-lg font-bold text-gray-800">${group.name}</h2>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 group-grid"
+               data-group="${group.name}">
+          </div>
+        `;
+        root.appendChild(section);
+
+        const grid = section.querySelector('.group-grid');
+        group.items.forEach((item, idx) => {
+          const btn = document.createElement('button');
+          btn.className = `card-lift text-left bg-white rounded-xl border-2 ${group.cardBorder} p-5 flex items-start gap-4 shadow-sm cursor-pointer w-full`;
+          btn.dataset.group = group.name;
+          btn.dataset.index = idx;
+          btn.innerHTML = `
+            <div class="mt-0.5 shrink-0">${group.cardIcon}</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-gray-800 text-sm leading-snug">${item.title}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-snug">${item.subtitle}</p>
+            </div>
+            <svg class="w-4 h-4 text-gray-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+          `;
+          grid.appendChild(btn);
+        });
+      });
+    }
+
+    /* ─── LOAD INLINE DATA ───────────────────────────────────── */
+    renderGroups(INLINE_DATA);
+
+    /* ─── MODAL ─────────────────────────────────────────────────── */
+    const modal          = document.getElementById('item-modal');
+    const modalClose     = document.getElementById('modal-close');
+    const modalCloseBtn  = document.getElementById('modal-close-btn');
+    const modalActionBtn = document.getElementById('modal-action-btn');
+
+    function openModal(groupName, itemIndex) {
+      const group = GROUPS.find(g => g.name === groupName);
+      if (!group) return;
+      const item = group.items[itemIndex];
+
+      document.getElementById('modal-group-badge').textContent = group.name;
+      document.getElementById('modal-group-badge').className   =
+        `text-xs font-bold px-2.5 py-0.5 rounded-full inline-block mb-2 ${group.badgeBg}`;
+      document.getElementById('modal-title').textContent       = item.title;
+      document.getElementById('modal-description').textContent = item.description;
+      modalActionBtn.className =
+        `px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors ${group.btnBg}`;
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    root.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-group]');
+      if (btn) openModal(btn.dataset.group, parseInt(btn.dataset.index, 10));
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    modalCloseBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* ─── DATE / GREETING ───────────────────────────────────────── */
+    (function () {
+      const now   = new Date();
+      const hour  = now.getHours();
+      const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greeting').textContent    = greet;
+      document.getElementById('today-date').textContent  = now.toLocaleDateString('en-AU', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById('footer-year').textContent =
+        `© ${now.getFullYear()} Enterprise Information Services`;
+    })();
+  </script>
+</body>
+</html>
